@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Compare areas</title>
+    <style>
+    {css}
+    </style>
+</head>
+<body>
+<div id="content-area">
+    {error_message}
+    <div class="form-container">
+        <form method="post" action=".">
+            <div class="label-cell-container">
+                <div class="label-container">
+                    <label for="multi_regions">Scegli regioni (Ctrl+click in Windows):</label>
+                </div>
+                <div class="cell-container">
+                    <select id="multi_regions" name="multi_regions" size="4" multiple>
+                        {reg_options}
+                    </select>
+                </div>
+            </div>
+            <div class="label-cell-container">
+                <input type="submit" value="Plot"/>
+            </div>
+        </form>
+    </div>
+    {plot_html}
+</div>
+<script src="https://www.covcompare.com/wp-content/plugins/advanced-iframe/js/ai_external.js"></script>
+</body>
+</html>
