@@ -44,6 +44,7 @@ label {
     content: "";
     display: table;
     clear: both;
+    padding-bottom: 12px;
 }
 
 #content-area {
