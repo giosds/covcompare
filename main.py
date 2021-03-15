@@ -4,9 +4,9 @@ import os
 
 from flask import Flask, request
 
+import manage_app
 import manage_input
 import manage_output
-import manage_app
 import tasks
 
 
@@ -37,10 +37,11 @@ def compare_region_cov():
             # Something went wrong with the input parsing
             error_message = manage_output.incorrect_input_message()
 
-    filename = tasks.get_plot_file(
-        regions, pop
-    )  # Gets the file name of the plot to display
-    return_page = tasks.build_page(error_message, filename, regions, pop)
+    # Gets the file name of the plot to display
+    plot_filename = tasks.get_plot_file(regions, pop)
+    heatmap_filename = tasks.get_heatmap_file('pca')
+
+    return_page = tasks.build_page(error_message, plot_filename, regions, pop, heatmap_filename)
 
     return return_page
 

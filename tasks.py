@@ -1,50 +1,40 @@
-""" The top-level functions called by the main file """
+""" The top-level functions."""
+
 import os
 
 import numpy as np
 
+from constants import CSV_URL, DEFAULT_START, IMAGES
+import manage_app
 import manage_input
 import manage_output
-from constants import CSV_URL, DEFAULT_START, IMAGES
-from manage_app import (
-    get_df,
-    filter_regional_data,
-    pivot_regional_data,
-    normalize_smooth,
-    get_raw_log_data,
-    compare_regions,
-)
-from manage_output import plot_graphs, delete_images
 
 
 def compare_ita_vs_region(region, download, pop):
-    """Compares a chosen region VS its complementary - Italy
+    """Compares a chosen region VS its complementary - Italy.
 
     Args:
-        pop (Series): region, population
-        region (str): the region to compare
-        download (bool): true to download a new csv file is
-
-    Returns:
-        None
+        pop (Series): Region, population.
+        region (str): The region to compare.
+        download (bool): True to download a new csv file.
     """
 
     Italia_no_region = f"Italia_no_{region}"
 
-    cov_df = get_df(CSV_URL, download)
-    cov_regs = filter_regional_data(cov_df, [region])
-    pivot_regs = pivot_regional_data(cov_regs)
+    cov_df = manage_input.get_df(CSV_URL, download)
+    cov_regs = manage_app.filter_regional_data(cov_df, [region])
+    pivot_regs = manage_app.pivot_regional_data(cov_regs)
 
     # Add total Italy
-    pivot_regs_all = pivot_regional_data(cov_df)
+    pivot_regs_all = manage_app.pivot_regional_data(cov_df)
     pivot_regs_all_no_region = pivot_regs_all.drop(columns=region)
     pivot_regs[Italia_no_region] = pivot_regs_all_no_region.sum(axis=1)
 
     # Update series
     pop[Italia_no_region] = pop["Italia"] - pop[region]
-    roll_pivot_regs = normalize_smooth(pivot_regs, pop, region)
+    roll_pivot_regs = manage_app.normalize_smooth(pivot_regs, pop, region)
     log_pivot_regs = np.log(roll_pivot_regs)
-    plot_graphs(
+    manage_output.plot_graphs(
         pivot_regs=pivot_regs,
         log_pivot_regs=log_pivot_regs,
         suptitle=f"{region} vs rest of Italy",
@@ -53,7 +43,7 @@ def compare_ita_vs_region(region, download, pop):
 
 
 def scheduled_reset_operations():
-    """Performs the end-of-day scheduled operations
+    """Performs the end-of-day scheduled operations.
 
     - Downloads the data
     - Deletes the old plots
@@ -61,13 +51,18 @@ def scheduled_reset_operations():
     """
 
     # Download new
-    cov_df = get_df(CSV_URL, download=True)
+    cov_df = manage_input.get_df(CSV_URL, download=False)  # True) # todo
     pop = manage_input.get_pop()
     # Reset plots
-    delete_images()
+    manage_output.delete_images()
+
+    # Pivot all data
+    pivot_regs, log_pivot_regs = manage_app.get_raw_log_data(cov_df, pop.index, pop)
+
+    # Build heatmaps
+    generate_all_heatmaps(log_pivot_regs)
 
     # Choose max min
-    pivot_regs, log_pivot_regs = get_raw_log_data(cov_df, pop.index, pop)
     last_day_log = log_pivot_regs.iloc[-1:]
     min_region = last_day_log.idxmin(axis=1)[0]
     max_region = last_day_log.idxmax(axis=1)[0]
@@ -78,19 +73,22 @@ def scheduled_reset_operations():
         f.write(max_region)
 
 
-def build_page(error_message, filename, regions, pop):
-    """Builds a complete webpage
+def build_page(error_message, filename, regions, pop, heatmap_filename):
+    """Builds a complete webpage.
 
     Prepares the content and fills the template in.
 
     Args:
-        pop (dict): region, population
-        regions (list): the selected regions
-        filename (str): the file name for the chosen inputs
-        error_message (str): message to display on top of the page
+        pop (dict): Region, population.
+        regions (list): The selected regions.
+        filename (str): The file name for the chosen inputs.
+        error_message (str): Message to display on top of the page.
+
+    Kwargs:
+        heatmap_filename: File for the heatmap plot.
 
     Returns:
-        str: the Html web page
+        str: The Html web page.
     """
 
     (
@@ -101,6 +99,11 @@ def build_page(error_message, filename, regions, pop):
     plot_html = manage_output.get_plot_html(
         filename=filename, regions=regions
     )  # Get plot area
+
+    heatmap_html = manage_output.get_heatmap_html(
+        filename=heatmap_filename
+    )  # Get heatmap area
+
     reg_options = manage_output.get_reg_options(
         regions=regions, pop=pop
     )  # Get the options area html
@@ -111,6 +114,7 @@ def build_page(error_message, filename, regions, pop):
         plot_html=plot_html,
         error_message=error_message,
         reg_options=reg_options,
+        heatmap_html=heatmap_html,
     )
     return return_page
 
@@ -132,6 +136,38 @@ def get_plot_file(regions, pop):
 
     # Only produce a plot if the file is missing
     if not os.path.isfile(os.path.join(IMAGES, filename)):
-        compare_regions(regions, pop, download=False)
+        manage_app.compare_regions(regions, pop, download=False)
 
     return filename
+
+
+def generate_all_heatmaps(log_pivot_regs):
+    """Generates all the heatmap files.
+
+    Args:
+        log_pivot_regs (pandas.DataFrame) : The data
+    """
+
+    for sort_name in manage_output.sort_functions.keys():
+        manage_output.build_heatmap(log_pivot_regs, sort_name)
+
+
+def get_heatmap_file(how):
+    """Returns the file name of the heatmap.
+
+    Launches all scheduled operations if needed
+
+    Args:
+        how (list): the selected heatmap
+
+    Returns:
+        str: the file name for the chosen heatmap
+    """
+
+    filepath = f"heatmap_{how}.jpg"
+
+    # Reset all if the file is missing
+    if not os.path.isfile(os.path.join(IMAGES, filepath)):
+        scheduled_reset_operations()
+
+    return filepath

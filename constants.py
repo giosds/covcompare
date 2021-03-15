@@ -16,3 +16,4 @@ IMAGES = "images"
 # Files
 DEFAULT_START = "default_start.txt"
 POPULATION_CSV = "population.csv"
+DENSITY_CSV = "density.csv"

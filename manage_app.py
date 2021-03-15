@@ -1,8 +1,7 @@
 """ Functions used to treat the data """
-import numpy as np
 
+import numpy as np
 import pandas as pd
-import requests
 
 from constants import (
     LOMBARDIA,
@@ -11,7 +10,8 @@ from constants import (
     DEFAULT_START,
     NUOVI_POSITIVI,
 )
-from manage_output import plot_graphs
+import manage_input
+import manage_output
 
 
 def filter_regional_data(cov_df, regions):
@@ -28,32 +28,6 @@ def filter_regional_data(cov_df, regions):
     cov_regs = cov_df[cov_df[DENOMINAZIONE_REGIONE].isin(regions)]
 
     return cov_regs
-
-
-def get_df(csv_url, download):
-    """Downloads or reads the data from file.
-
-    Args:
-        csv_url (str): url of csv file
-        download (bool): : True to download a new file
-
-    Returns:
-        DataFrame
-    """
-
-    file_name = csv_url.split("/")[-1]
-
-    # Download from Github
-    if download:
-        req = requests.get(csv_url)
-        url_content = req.content
-        csv_file = open(file_name, "wb")
-        csv_file.write(url_content)
-        csv_file.close()
-
-    cov_df = pd.read_csv(file_name)
-    cov_df["data"] = pd.to_datetime(cov_df["data"])
-    return cov_df
 
 
 def pivot_regional_data(cov_regs):
@@ -159,9 +133,9 @@ def compare_regions(regions, pop, download):
         None
     """
 
-    cov_df = get_df(CSV_URL, download)
+    cov_df = manage_input.get_df(CSV_URL, download)
     pivot_regs, log_pivot_regs = get_raw_log_data(cov_df, regions, pop)
-    plot_graphs(
+    manage_output.plot_graphs(
         pivot_regs=pivot_regs,
         log_pivot_regs=log_pivot_regs,
         suptitle=" - ".join(regions),

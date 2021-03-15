@@ -5,10 +5,24 @@ import zlib
 
 import matplotlib
 
-from constants import IMAGES
-
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+from constants import IMAGES
+import sort_regions
+
+
+sort_functions = {
+    "pca": sort_regions.sort_by_pca,
+    "pop_density": sort_regions.sort_by_pop_density,
+    "distance": sort_regions.sort_by_distance,
+    "distance_initials": sort_regions.sort_by_distance_initials,
+    "correlation": sort_regions.sort_by_correlation,
+    "random": sort_regions.sort_by_random,
+    "kmeans": sort_regions.sort_by_kmeans,
+    "alphabetical": sort_regions.sort_by_alphabetical,
+}
 
 
 ########################################################################################################################
@@ -61,6 +75,33 @@ def delete_images():
         os.remove(f)
 
 
+def build_heatmap(log_pivot_regs, how):
+    """Builds a heatmap. Regions are sorted.
+
+    Args:
+        log_pivot_regs (pandas.DataFrame): Rransformed values.
+        how: A sorting algorithm among those listed in sort_functions dictionary
+    """
+    log_pivot_regs = log_pivot_regs.copy()
+
+    # Sort region names according to a selected function
+    ordered_list = sort_functions[how](log_pivot_regs.dropna())
+    log_pivot_regs.index = log_pivot_regs.index.strftime("%Y-%m-%d")
+
+    select_log_pivot_regs = log_pivot_regs
+    trans_log_pivot_regs = select_log_pivot_regs.T
+    logs_ordered_by_dens = trans_log_pivot_regs.reindex(ordered_list)
+    sns.heatmap(logs_ordered_by_dens, cmap="RdYlGn_r")
+    plt.xlabel("Nuovi contagi giornalieri (log)")
+    plt.ylabel(f"Regioni ordinate: {how}")
+    plt.title("Heatmap", size=14)
+    plt.tight_layout()
+
+    filename = os.path.join(IMAGES, f"heatmap_{how}.jpg")
+    plt.savefig(filename)
+    plt.close()
+
+
 ########################################################################################################################
 # Functions used to handle the html
 ########################################################################################################################
@@ -86,6 +127,7 @@ def get_full_page(
     plot_html="",
     error_message="",
     reg_options="",
+    heatmap_html=''
 ):
     """Returns a web page, complete with plot area and region names.
 
@@ -95,6 +137,7 @@ def get_full_page(
         plot_html (str): html for the plot image
         error_message (str): html to show in case the input were wrong
         reg_options (str): html for the options of the multi choice box
+        heatmap_html (str): html for the heatmap image
 
     Returns:
         str: the complete web page
@@ -105,6 +148,7 @@ def get_full_page(
         plot_html=plot_html,
         error_message=error_message,
         reg_options=reg_options,
+        heatmap_html=heatmap_html,
     )
     return web_page
 
@@ -113,15 +157,31 @@ def get_plot_html(filename, regions):
     """Returns the html img tag for the chosen regions.
 
     Args:
-        filename (str): name of the plot image
-        regions (list of str): regions to plot
+        filename (str): Name of the plot image.
+        regions (list of str): Regions to plot.
 
     Returns:
-        str: html for the plot image
+        str: Html for the plot image.
     """
+
     html_code = f'<img src="/static/{filename}" alt="{regions}" id="plot-img">'
 
     return html_code.format(filename=filename, regions=regions)
+
+
+def get_heatmap_html(filename):
+    """Returns the html img tag for the chosen regions.
+
+    Args:
+        filename (str): Name of the plot image.
+
+    Returns:
+        str: Html for the plot image.
+    """
+
+    html_code = f'<img src="/static/{filename}" alt="heatmap" id="heatmap-img">'
+
+    return html_code.format(filename=filename)
 
 
 def incorrect_input_message():

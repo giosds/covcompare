@@ -1,9 +1,10 @@
 """ Functions to parse and prepare the input data """
 
-import string
 import pandas as pd
+import requests
+import string
 
-from constants import POPULATION_CSV
+from constants import POPULATION_CSV, DENSITY_CSV
 
 
 def validate_input(inputs, pop):
@@ -21,14 +22,34 @@ def validate_input(inputs, pop):
     return inputs
 
 
+def get_dens():
+    """Reads in a region-density Series.
+
+    Returns:
+        pandas.Series: region, population density
+    """
+
+    try:
+        dens = pd.read_csv(DENSITY_CSV, index_col=0, squeeze=True)
+    except:
+        write_dens()
+        dens = pd.read_csv(DENSITY_CSV, index_col=0, squeeze=True)
+
+    return dens
+
+
 def get_pop():
     """Reads in a region-population Series.
 
     Returns:
         pandas.Series: region, population
     """
-    write_pop()  # TODO debug
-    pop = pd.read_csv(POPULATION_CSV, index_col=0, squeeze=True)
+
+    try:
+        pop = pd.read_csv(POPULATION_CSV, index_col=0, squeeze=True)
+    except:
+        write_pop()
+        pop = pd.read_csv(POPULATION_CSV, index_col=0, squeeze=True)
 
     return pop
 
@@ -103,7 +124,75 @@ def write_pop(pop_dict=None):
             "Valle d'Aosta": 125501,
             "Veneto": 4907704,
         }  # , 'Italia': 60244639
-    pd.Series(pop_dict, name="Population").to_csv("population.csv")
+
     pd.DataFrame.from_dict(pop_dict, orient="index", columns=["Population"]).to_csv(
-        "population.csv", index=True
+        POPULATION_CSV, index=True
     )
+
+
+def write_dens(dens_dict=None):
+    """For setup
+
+    Writes a population csv file
+
+    Args:
+        pop_dict (dict of (str, int)): a region, population Dictionary
+
+    Returns:
+        None
+    """
+    if dens_dict is None:
+        dens_dict = {
+            "Abruzzo": 121,
+            "Basilicata": 55,
+            "Calabria": 126,
+            "Campania": 423,
+            "Emilia-Romagna": 199,
+            "Friuli Venezia Giulia": 153,
+            "Lazio": 340,
+            "Liguria": 285,
+            "Lombardia": 423,
+            "Marche": 162,
+            "Molise": 68,
+            "P.A. Bolzano": 72,
+            "P.A. Trento": 87,
+            "Piemonte": 171,
+            "Puglia": 205,
+            "Sardegna": 68,
+            "Sicilia": 192,
+            "Toscana": 162,
+            "Umbria": 104,
+            "Valle d'Aosta": 38,
+            "Veneto": 268,
+        }
+
+    pd.DataFrame.from_dict(dens_dict, orient="index", columns=["Density"]).to_csv(
+        DENSITY_CSV, index=True
+    )
+
+
+def get_df(csv_url, download):
+    """Downloads or reads the data from file.
+
+    Args:
+        csv_url (str): url of csv file
+        download (bool): : True to download a new file
+
+    Returns:
+        DataFrame
+    """
+
+    file_name = csv_url.split("/")[-1]
+
+    # Download from Github
+    if download:
+        req = requests.get(csv_url)
+        url_content = req.content
+        csv_file = open(file_name, "wb")
+        csv_file.write(url_content)
+        csv_file.close()
+
+    cov_df = pd.read_csv(file_name)
+    cov_df["data"] = pd.to_datetime(cov_df["data"])
+
+    return cov_df
