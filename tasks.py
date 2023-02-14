@@ -42,7 +42,7 @@ def compare_ita_vs_region(region, download, pop):
     )
 
 
-def scheduled_reset_operations():
+def scheduled_reset_operations(download):
     """Performs the end-of-day scheduled operations.
 
     - Downloads the data
@@ -51,7 +51,7 @@ def scheduled_reset_operations():
     """
 
     # Download new
-    cov_df = manage_input.get_df(CSV_URL, download=False)  # True) # todo
+    cov_df = manage_input.get_df(CSV_URL, download=download)
     pop = manage_input.get_pop()
     # Reset plots
     manage_output.delete_images()
@@ -150,7 +150,7 @@ def generate_all_heatmaps(log_pivot_regs):
 
     for sort_name in manage_output.sort_functions.keys():
         manage_output.build_heatmap(log_pivot_regs, sort_name)
-
+    manage_output.build_clustered_plot(log_pivot_regs)
 
 def get_heatmap_file(how):
     """Returns the file name of the heatmap.

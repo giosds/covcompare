@@ -24,7 +24,6 @@ def compare_region_cov():
         str: Html of the page to be built
     """
 
-    print("Cwd = ", os.getcwd())
     error_message = ""
     pop = manage_input.get_pop()  # Get regions-population data
     regions = manage_app.get_default_values()  # Find the first areas to show

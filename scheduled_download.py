@@ -14,4 +14,4 @@ try:
 except:
     pass
 finally:
-    scheduled_reset_operations()
+    scheduled_reset_operations(download=True)

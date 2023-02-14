@@ -1,4 +1,4 @@
-""" Functions used to treat the data """
+"""Functions used to treat the data. """
 
 import numpy as np
 import pandas as pd
@@ -114,8 +114,10 @@ def get_raw_log_data(cov_df, regions, pop):
     cov_regs = filter_regional_data(cov_df, regions)
     pivot_regs = pivot_regional_data(cov_regs)  # Get the raw values
 
-    roll_pivot_regs = normalize_smooth(pivot_regs, pop, LOMBARDIA)
-    log_pivot_regs = np.log2(roll_pivot_regs)  # Get the transformed values
+    roll_pivot_regs = normalize_smooth(pivot_regs, pop, LOMBARDIA).dropna()
+    log_pivot_regs = np.log2(roll_pivot_regs).dropna()  # Get the transformed values
+
+
     return pivot_regs, log_pivot_regs
 
 

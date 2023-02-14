@@ -1,4 +1,5 @@
 """ Functions to parse and prepare the input data """
+import os
 
 import pandas as pd
 import requests
@@ -182,7 +183,7 @@ def get_df(csv_url, download):
         DataFrame
     """
 
-    file_name = csv_url.split("/")[-1]
+    file_name = os.path.basename(csv_url)
 
     # Download from Github
     if download:
@@ -196,3 +197,4 @@ def get_df(csv_url, download):
     cov_df["data"] = pd.to_datetime(cov_df["data"])
 
     return cov_df
+

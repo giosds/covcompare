@@ -67,6 +67,9 @@ label {
     width: 90%;
     height: auto
 }
+#sort-regs {
+    padding-left: 10px;
+}
 
 @media screen and (max-width: 600px) {
       .label-container, .cell-container, input[type=submit] {

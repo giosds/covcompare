@@ -28,7 +28,16 @@
         </form>
     </div>
     {plot_html}
-    <br>
+    <div id="sort-regs">
+        <p></p>
+        Tutte le regioni:
+        <br>
+        <a onclick="document.getElementById('heatmap-img').src='/static/heatmap_alphabetical.jpg';" href="javascript:void(0);">Ordine alfabetico </a> |
+        <a onclick="document.getElementById('heatmap-img').src='/static/heatmap_pop_density.jpg';" href="javascript:void(0);">Densità di popolazione</a> |
+        <a onclick="document.getElementById('heatmap-img').src='/static/heatmap_pca.jpg';" href="javascript:void(0);">Similarità</a> |
+        <a onclick="document.getElementById('heatmap-img').src='/static/peaks_clusters.jpg';" href="javascript:void(0);">Cluster e picchi</a>
+        <p></p>
+    </div>
     {heatmap_html}
 </div>
 <script src="https://www.covcompare.com/wp-content/plugins/advanced-iframe/js/ai_external.js"></script>
