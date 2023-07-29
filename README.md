@@ -13,7 +13,7 @@ This is how to read the graph:
 - It's a log: one more unit in the Y axis represents a multiplication in new cases by 'e' times
 - The plot represents a transformation of the (new cases/population) ratio in each region. Thus when two lines cross, they have the same ratio.
 
-https://www.giosdatascience.com
+https://www.covcompare.com
 
 Data sources:
 - http://dati.istat.it/
